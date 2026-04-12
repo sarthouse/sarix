@@ -1,0 +1,15 @@
+scripts:
+  # Django management commands
+  server: python manage.py runserver
+  migrate: python manage.py migrate
+  makemigrations: python manage.py makemigrations
+  createsuperuser: python manage.py createsuperuser
+  collectstatic: python manage.py collectstatic
+  check: python manage.py check
+  # Docker commands
+  docker-build: docker compose build --no-cache
+  docker-up: docker compose --env-file .env up -d
+  docker-down: docker compose down
+  docker-logs: docker compose logs -f
+  docker-restart: docker compose restart
+  docker-createsuperuser: docker compose exec api python manage.py createsuperuser

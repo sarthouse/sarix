@@ -1,0 +1,24 @@
+# Virtual environment
+venv/
+.venv/
+env/
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+# Archivos de desarrollo
+.env
+.env.local
+*.log
+*.sqlite3
+# Utils (no es necesario en producción)
+utils/
+# Tests
+tests/
+.coverage
+htmlcov/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
