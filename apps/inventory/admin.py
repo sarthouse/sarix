@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Category, Attribute, AttributeValue, UnitOfMeasure,
+    Category, Attribute, AttributeValue, ProductTag, UnitOfMeasure,
     ProductTemplate, Product, Lot, StockQuant,
     Warehouse, Location, PickingType, Stock, StockMovement, StockAlert
 )
@@ -21,14 +21,20 @@ class UnitOfMeasureAdmin(admin.ModelAdmin):
 
 @admin.register(Attribute)
 class AttributeAdmin(admin.ModelAdmin):
-    list_display = ['name']
+    list_display = ['name', 'woo_attribute_id']
     search_fields = ['name']
 
 
 @admin.register(AttributeValue)
 class AttributeValueAdmin(admin.ModelAdmin):
-    list_display = ['attribute', 'value']
+    list_display = ['attribute', 'value', 'woo_term_id']
     list_filter = ['attribute']
+
+
+@admin.register(ProductTag)
+class ProductTagAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'woo_tag_id']
+    search_fields = ['name', 'slug']
 
 
 @admin.register(ProductTemplate)

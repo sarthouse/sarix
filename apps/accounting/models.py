@@ -146,6 +146,14 @@ class JournalLine(models.Model):
     credit_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     order = models.PositiveIntegerField(default=0)
     
+    # Centro de costo
+    cost_center = models.ForeignKey(
+        'reports.CostCenter',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='journal_lines'
+    )
+    
     # Soporte multi-moneda
     currency = models.ForeignKey('locale.Currency', on_delete=models.SET_NULL, null=True, blank=True, related_name='journal_lines', help_text='Moneda de esta línea')
     currency_debit_amount = models.DecimalField(max_digits=20, decimal_places=4, null=True, blank=True, help_text='Monto en moneda de la línea (débito)')

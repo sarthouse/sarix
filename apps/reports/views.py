@@ -214,3 +214,40 @@ class SalesSummaryView(APIView):
             'by_customer': list(by_customer),
             'by_product': list(by_product),
         })
+
+
+from rest_framework import viewsets
+from .models import CostCenter, FixedExpense, CashFlowCategory, CashFlowLine
+from .serializers import (
+    CostCenterSerializer, CostCenterCreateSerializer,
+    FixedExpenseSerializer, FixedExpenseCreateSerializer,
+    CashFlowCategorySerializer, CashFlowLineSerializer
+)
+
+
+class CostCenterViewSet(viewsets.ModelViewSet):
+    queryset = CostCenter.objects.all()
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CostCenterCreateSerializer
+        return CostCenterSerializer
+
+
+class FixedExpenseViewSet(viewsets.ModelViewSet):
+    queryset = FixedExpense.objects.all()
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return FixedExpenseCreateSerializer
+        return FixedExpenseSerializer
+
+
+class CashFlowCategoryViewSet(viewsets.ModelViewSet):
+    queryset = CashFlowCategory.objects.all()
+    serializer_class = CashFlowCategorySerializer
+
+
+class CashFlowLineViewSet(viewsets.ModelViewSet):
+    queryset = CashFlowLine.objects.all()
+    serializer_class = CashFlowLineSerializer

@@ -110,6 +110,45 @@ class CompanyConfig(models.Model):
         'accounts.Account', on_delete=models.PROTECT, related_name='companies_default_expense',
         null=True, blank=True, help_text='Cuenta de gastos por defecto'
     )
+    
+    account_cash = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_cash',
+        null=True, blank=True, help_text='Cuenta de caja/efectivo'
+    )
+    account_bank = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_bank',
+        null=True, blank=True, help_text='Cuenta de banco default'
+    )
+    
+    account_values_in_portfolio = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_values_portfolio',
+        null=True, blank=True, help_text='Valores en cartera (cheques propios)'
+    )
+    account_checks_rejected = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_checks_rejected',
+        null=True, blank=True, help_text='Cheques rechazados'
+    )
+    account_third_party_checks = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_third_party_checks',
+        null=True, blank=True, help_text='Cheques de terceros'
+    )
+    account_values_to_deposit = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_values_to_deposit',
+        null=True, blank=True, help_text='Valores a depositar (en tránsito)'
+    )
+    
+    default_perception_account = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_perceptions',
+        null=True, blank=True, help_text='Cuenta default para percepciones'
+    )
+    default_withholding_account = models.ForeignKey(
+        'accounts.Account', on_delete=models.PROTECT, related_name='companies_withholdings',
+        null=True, blank=True, help_text='Cuenta default para retenciones'
+    )
+    perception_journal = models.ForeignKey(
+        'accounting.Journal', on_delete=models.PROTECT, related_name='companies_perception_journals',
+        null=True, blank=True, help_text='Diario para percepciones'
+    )
 
     class Meta:
         verbose_name = 'Configuracion Contable'

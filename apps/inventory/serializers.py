@@ -1,9 +1,21 @@
 from rest_framework import serializers
 from .models import (
-    Category, Attribute, AttributeValue, UnitOfMeasure,
+    Category, Attribute, AttributeValue, ProductTag, UnitOfMeasure,
     ProductTemplate, Product, Lot, StockQuant,
     Warehouse, Location, PickingType, Stock, StockMovement, StockAlert
 )
+
+
+class ProductTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductTag
+        fields = ['id', 'name', 'slug', 'woo_tag_id']
+
+
+class ProductTagListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductTag
+        fields = ['id', 'name', 'slug']
 
 
 class AttributeValueSerializer(serializers.ModelSerializer):
@@ -59,10 +71,24 @@ class ProductTemplateSerializer(serializers.ModelSerializer):
     variations_count = serializers.SerializerMethodField()
     sale_taxes_display = serializers.SerializerMethodField()
     purchase_taxes_display = serializers.SerializerMethodField()
+    cost_center_name = serializers.CharField(source='cost_center.name', read_only=True, allow_null=True)
+    costing_method_display = serializers.CharField(source='get_costing_method_display', read_only=True)
+    tags = ProductTagListSerializer(many=True, read_only=True)
     
     class Meta:
         model = ProductTemplate
-        fields = ['id', 'sku', 'name', 'category', 'category_name', 'product_type', 'unit_of_measure', 'cost_price', 'sale_price', 'track_lot', 'track_variation', 'is_active', 'variations_count', 'sale_tax_ids', 'sale_taxes_display', 'purchase_tax_ids', 'purchase_taxes_display']
+        fields = [
+            'id', 'sku', 'name', 'category', 'category_name', 'product_type', 
+            'unit_of_measure', 'cost_price', 'sale_price', 
+            'track_lot', 'track_variation', 'is_active', 
+            'variations_count', 
+            'sale_tax_ids', 'sale_taxes_display', 
+            'purchase_tax_ids', 'purchase_taxes_display',
+            'costing_method', 'costing_method_display',
+            'standard_cost', 'standard_price',
+            'cost_center', 'cost_center_name',
+            'tags'
+        ]
     
     def get_variations_count(self, obj):
         return obj.variations.count()

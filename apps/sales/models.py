@@ -47,6 +47,8 @@ class SaleOrder(models.Model):
     confirmed_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
     invoiced_at = models.DateTimeField(null=True, blank=True)
+    woo_metadata = models.JSONField(null=True, blank=True, help_text='Metadata de WooCommerce (meta_data de la orden)')
+    woo_order_id = models.IntegerField(null=True, blank=True, help_text='ID de la orden en WooCommerce')
 
     class Meta:
         verbose_name = 'Orden de Venta'
@@ -126,6 +128,7 @@ class SaleOrderLine(models.Model):
         blank=True,
         help_text='Impuestos aplicados a esta línea'
     )
+    woo_line_metadata = models.JSONField(null=True, blank=True, help_text='Metadata de WooCommerce (atributos, etc)')
 
     class Meta:
         verbose_name = 'Linea de Orden'

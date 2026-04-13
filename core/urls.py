@@ -20,6 +20,8 @@ urlpatterns = [
     path('api/v1/taxes/', include('apps.taxes.urls')),
     path('api/v1/locale/', include('apps.locale.urls')),
     path('api/v1/purchases/', include('apps.purchases.urls')),
+    path('api/v1/payments/', include('apps.payments.urls')),
+    path('api/v1/woocommerce/', include('apps.woocommerce.urls')),
     # API Documentation
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/v1/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

@@ -45,17 +45,19 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'apps.company',
     'apps.accounts',
     'apps.accounting',
-    'apps.company',
-    'apps.locale',
     'apps.partners',
-    'apps.periods',
-    'apps.reports',
     'apps.inventory',
     'apps.sales',
     'apps.taxes',
     'apps.purchases',
+    'apps.payments',
+    'apps.locale',
+    'apps.periods',
+    'apps.reports',
+    'apps.woocommerce',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

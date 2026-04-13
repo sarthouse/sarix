@@ -59,6 +59,59 @@ class Tax(models.Model):
     
     sequence = models.PositiveIntegerField(default=1, help_text='Orden de aplicación')
     is_active = models.BooleanField(default=True)
+    
+    TAX_TYPE_AR = [
+        ('vat', 'IVA'),
+        ('perception', 'Percepción'),
+        ('retention', 'Retención'),
+        ('other', 'Otro')
+    ]
+    
+    tax_type = models.CharField(
+        max_length=20,
+        choices=TAX_TYPE_AR,
+        default='vat',
+        help_text='Tipo de impuesto (Argentina)'
+    )
+    
+    PERCEPTION_BASE = [
+        ('net', 'Neto gravado'),
+        ('vat', 'Monto IVA'),
+        ('total', 'Total factura')
+    ]
+    
+    perception_base = models.CharField(
+        max_length=20,
+        choices=PERCEPTION_BASE,
+        null=True, blank=True,
+        help_text='Base de cálculo para percepciones'
+    )
+    
+    APPLY_TO = [
+        ('sale', 'Ventas'),
+        ('purchase', 'Compras'),
+        ('payment', 'Pagos')
+    ]
+    
+    apply_to = models.CharField(
+        max_length=20,
+        choices=APPLY_TO,
+        null=True, blank=True,
+        help_text='Aplica a ventas, compras o pagos'
+    )
+    
+    is_withholding = models.BooleanField(
+        default=False,
+        help_text='Es retención (monto negativo)'
+    )
+    
+    withholding_account = models.ForeignKey(
+        'accounts.Account',
+        on_delete=models.PROTECT,
+        null=True, blank=True,
+        related_name='withholding_taxes',
+        help_text='Cuenta para retenciones/percepciones'
+    )
 
     class Meta:
         verbose_name = 'Impuesto'

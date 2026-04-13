@@ -76,6 +76,7 @@ class UnitOfMeasure(models.Model):
 
 class Attribute(models.Model):
     name = models.CharField(max_length=50)
+    woo_attribute_id = models.IntegerField(null=True, blank=True, help_text='ID del atributo en WooCommerce')
 
     class Meta:
         verbose_name = 'Atributo'
@@ -88,6 +89,7 @@ class Attribute(models.Model):
 class AttributeValue(models.Model):
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, related_name='values')
     value = models.CharField(max_length=50)
+    woo_term_id = models.IntegerField(null=True, blank=True, help_text='ID del término en WooCommerce')
 
     class Meta:
         verbose_name = 'Valor de Atributo'
@@ -96,6 +98,25 @@ class AttributeValue(models.Model):
 
     def __str__(self):
         return f"{self.attribute.name}: {self.value}"
+
+
+class ProductTag(models.Model):
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(unique=True)
+    woo_tag_id = models.IntegerField(null=True, blank=True, help_text='ID del tag en WooCommerce')
+
+    class Meta:
+        verbose_name = 'Tag de Producto'
+        verbose_name_plural = 'Tags de Productos'
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
 
 class ProductTemplate(models.Model):
@@ -137,6 +158,43 @@ class ProductTemplate(models.Model):
         related_name='purchase_product_templates',
         blank=True,
         help_text='Impuestos de compra aplicados automáticamente a este producto'
+    )
+    
+    COSTING_METHOD = [
+        ('standard', 'Standard Cost'),
+        ('average', 'Average Cost (AVCO)'),
+        ('fifo', 'FIFO'),
+    ]
+    
+    costing_method = models.CharField(
+        max_length=20,
+        choices=COSTING_METHOD,
+        default='average',
+        help_text='Método de costeo'
+    )
+    standard_cost = models.DecimalField(
+        max_digits=14, decimal_places=2,
+        null=True, blank=True,
+        help_text='Costo estándar (para método standard)'
+    )
+    standard_price = models.DecimalField(
+        max_digits=14, decimal_places=2,
+        null=True, blank=True,
+        help_text='Precio de venta estándar'
+    )
+    
+    cost_center = models.ForeignKey(
+        'reports.CostCenter',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='products',
+        help_text='Centro de costo para imputación de costos'
+    )
+    tags = models.ManyToManyField(
+        'ProductTag',
+        blank=True,
+        related_name='product_templates',
+        help_text='Tags para categorización'
     )
 
     class Meta:
