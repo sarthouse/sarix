@@ -1,16 +1,28 @@
-from rest_framework import generics, filters
+from rest_framework import generics, filters, viewsets
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Partner
-from .serializers import PartnerSerializer, PartnerListSerializer
+from .models import Partner, PartnerCategory
+from .serializers import (
+    PartnerSerializer, PartnerListSerializer,
+    PartnerCategorySerializer, PartnerCategoryListSerializer
+)
 
-class PartnerListCreateView(generics.ListCreateAPIView):
-    queryset = Partner.objects.filter(is_active=True)
+
+class PartnerCategoryViewSet(viewsets.ModelViewSet):
+    queryset = PartnerCategory.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ["partner_type"]
-    search_fields = ["name", "cuit"]
-    def get_serializer_class(self):
-        return PartnerListSerializer if self.request.method == "GET" else PartnerSerializer
+    filterset_fields = ['parent']
+    search_fields = ['name', 'shortcut']
 
-class PartnerDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Partner.objects.all()
-    serializer_class = PartnerSerializer
+    def get_serializer_class(self):
+        return PartnerCategoryListSerializer if self.action == 'list' else PartnerCategorySerializer
+
+
+class PartnerViewSet(viewsets.ModelViewSet):
+    queryset = Partner.objects.select_related('parent', 'state', 'country')
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['partner_type', 'is_company', 'is_customer', 'is_supplier', 'iva_condition', 'state', 'country']
+    search_fields = ['name', 'cuit', 'email', 'phone']
+    ordering_fields = ['name', 'created_at']
+
+    def get_serializer_class(self):
+        return PartnerListSerializer if self.action == 'list' else PartnerSerializer

@@ -6,10 +6,13 @@ scripts:
   createsuperuser: python manage.py createsuperuser
   collectstatic: python manage.py collectstatic
   check: python manage.py check
+  spectacular: python manage.py spectacular --file schema.yml
   # Docker commands
+  docker-dev: docker compose -f docker-compose.dev.yml --env-file .env up -d
   docker-build: docker compose build --no-cache
   docker-up: docker compose --env-file .env up -d
   docker-down: docker compose down
   docker-logs: docker compose logs -f
   docker-restart: docker compose restart
   docker-createsuperuser: docker compose exec api python manage.py createsuperuser
+  docker-rebuild: docker-compose --env-file .env up --build -d

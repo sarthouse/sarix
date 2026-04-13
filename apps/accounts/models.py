@@ -1,12 +1,14 @@
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
+
 class AccountType(models.TextChoices):
     ASSET = 'activo', 'Activo'
     LIABILITY = 'pasivo', 'Pasivo'
     EQUITY = 'patrimonio', 'Patrimonio'
     REVENUE = 'ingreso', 'Ingreso'
     EXPENSE = 'egreso', 'Egreso'
+
 
 class Account(MPTTModel):
     code = models.CharField(max_length=20, unique=True)
@@ -16,6 +18,20 @@ class Account(MPTTModel):
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     allows_movements = models.BooleanField(default=True)
+    currency = models.ForeignKey(
+        'locale.Currency', 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        related_name='accounts',
+        help_text='Moneda específica de la cuenta (opcional)'
+    )
+    company = models.ForeignKey(
+        'company.Company',
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='accounts',
+        help_text='Empresa propietaria de la cuenta'
+    )
 
     class MPTTMeta:
         order_insertion_by = ['code']

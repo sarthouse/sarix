@@ -41,15 +41,21 @@ THIRD_PARTY_APPS = [
     'drf_spectacular',
     'corsheaders',
     'mptt',
+    # 'django_afip',
 ]
 
 LOCAL_APPS = [
     'apps.accounts',
     'apps.accounting',
     'apps.company',
+    'apps.locale',
     'apps.partners',
     'apps.periods',
     'apps.reports',
+    'apps.inventory',
+    'apps.sales',
+    'apps.taxes',
+    'apps.purchases',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -228,3 +234,20 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Storage configuration for DJANGO AFIP
+
+# STORAGES = {
+#     "afip_keys": {
+#         "BACKEND":"" 
+#     },
+#     "afip_certs": {
+#         "BACKEND":"" 
+#     },
+#     "afip_pdfs": {
+#         "BACKEND":"" 
+#     },
+#     "afip_logos": {
+#         "BACKEND":"" 
+#     },
+# }

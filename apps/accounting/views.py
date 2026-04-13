@@ -3,8 +3,20 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Journal, JournalStatus
-from .serializers import JournalSerializer, JournalListSerializer
+from .models import DocumentType, Journal, JournalStatus
+from .serializers import DocumentTypeSerializer, JournalSerializer, JournalListSerializer
+
+
+class DocumentTypeViewSet(ModelViewSet):
+    queryset = DocumentType.objects.all()
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['document_class', 'iva_type', 'is_active']
+    search_fields = ['code', 'name']
+    ordering_fields = ['code']
+
+    def get_serializer_class(self):
+        return DocumentTypeSerializer
+
 
 class JournalViewSet(ModelViewSet):
     queryset = Journal.objects.prefetch_related("lines__account")
@@ -18,6 +30,16 @@ class JournalViewSet(ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        journal = self.get_object()
+        if journal.status != JournalStatus.DRAFT:
+            return Response(
+                {"detail": "Solo se pueden eliminar asientos en borrador."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        journal.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["post"])
     def post_journal(self, request, pk=None):

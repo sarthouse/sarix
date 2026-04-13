@@ -4,6 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum
 from apps.accounts.models import Account, AccountType
 from apps.accounting.models import JournalLine, JournalStatus
+from apps.inventory.models import Stock, StockMovement, Product, Warehouse
+from apps.sales.models import SaleOrder, SaleOrderLine, SaleOrderStatus
 from .serializers import ProfitLossSerializer, BalanceSheetSerializer, GeneralLedgerSerializer
 
 def _balances(account_ids, period_ids=None, up_to_date=None):
@@ -108,3 +110,107 @@ class GeneralLedgerView(APIView):
                 "balance": running,
             })
         return Response({"account_id": account_id, "entries": rows})
+
+
+class InventoryMetricsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        warehouse_id = request.query_params.get('warehouse')
+        
+        qs = Stock.objects.select_related('product', 'warehouse')
+        if warehouse_id:
+            qs = qs.filter(warehouse_id=warehouse_id)
+        
+        stocks = list(qs.values(
+            'product__sku', 'product__name', 'warehouse__code',
+            'qty_available', 'qty_reserved', 'qty_min'
+        ))
+        
+        total_available = sum(s['qty_available'] for s in stocks)
+        total_reserved = sum(s['qty_reserved'] for s in stocks)
+        total_min = sum(s['qty_min'] for s in stocks)
+        
+        negative_stocks = [s for s in stocks if s['qty_available'] < 0]
+        low_stocks = [s for s in stocks if s['qty_available'] > 0 and s['qty_available'] <= s['qty_min']]
+        
+        return Response({
+            'total_available': total_available,
+            'total_reserved': total_reserved,
+            'reserved_percentage': (total_reserved / total_available * 100) if total_available > 0 else 0,
+            'negative_count': len(negative_stocks),
+            'low_stock_count': len(low_stocks),
+            'negative_stocks': negative_stocks[:10],
+            'low_stocks': low_stocks[:10],
+        })
+
+
+class InventoryValuationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        warehouse_id = request.query_params.get('warehouse')
+        
+        qs = Stock.objects.select_related('product')
+        if warehouse_id:
+            qs = qs.filter(warehouse_id=warehouse_id)
+        
+        total_value = 0
+        products = []
+        for stock in qs:
+            value = stock.qty_available * stock.product.cost_price
+            total_value += value
+            products.append({
+                'product_sku': stock.product.sku,
+                'product_name': stock.product.name,
+                'warehouse_code': stock.warehouse.code,
+                'qty_available': stock.qty_available,
+                'cost_price': stock.product.cost_price,
+                'value': value,
+            })
+        
+        return Response({
+            'total_value': total_value,
+            'products': products,
+        })
+
+
+class SalesSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from datetime import date
+        from django.db.models import Count
+        
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        period_id = request.query_params.get('period')
+        
+        qs = SaleOrder.objects.filter(status=SaleOrderStatus.INVOICED)
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+        if period_id:
+            qs = qs.filter(period_id=period_id)
+        
+        total_sales = qs.count()
+        total_revenue = sum(o.subtotal for o in qs)
+        
+        by_customer = qs.values('customer__name').annotate(
+            total=Sum('lines__qty')
+        ).order_by('-total')[:10]
+        
+        by_product = SaleOrderLine.objects.filter(
+            order__in=qs
+        ).values('product__sku', 'product__name').annotate(
+            qty_sold=Sum('qty'),
+            total=Sum('subtotal')
+        ).order_by('-total')[:10]
+        
+        return Response({
+            'total_orders': total_sales,
+            'total_revenue': total_revenue,
+            'by_customer': list(by_customer),
+            'by_product': list(by_product),
+        })

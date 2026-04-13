@@ -14,8 +14,13 @@ urlpatterns = [
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/', include('apps.accounting.urls')),
     path('api/v1/partners/', include('apps.partners.urls')),
+    path('api/v1/inventory/', include('apps.inventory.urls')),
+    path('api/v1/sales/', include('apps.sales.urls')),
     path('api/v1/reports/', include('apps.reports.urls')),
+    path('api/v1/taxes/', include('apps.taxes.urls')),
+    path('api/v1/locale/', include('apps.locale.urls')),
+    path('api/v1/purchases/', include('apps.purchases.urls')),
     # API Documentation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/v1/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]

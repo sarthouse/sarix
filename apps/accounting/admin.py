@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import Journal, JournalLine
+from .models import DocumentType, Journal, JournalLine
+
+
+@admin.register(DocumentType)
+class DocumentTypeAdmin(admin.ModelAdmin):
+    list_display = ['code', 'name', 'document_class', 'iva_type', 'prefix', 'next_number', 'is_active']
+    list_filter = ['document_class', 'iva_type', 'is_active']
+    search_fields = ['code', 'name']
+    ordering = ['code']
+
 
 class JournalLineInline(admin.TabularInline):
     model = JournalLine

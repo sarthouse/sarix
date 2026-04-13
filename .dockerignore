@@ -22,3 +22,5 @@ htmlcov/
 .idea/
 *.swp
 *.swo
+# Frontend
+frontend/
