@@ -217,6 +217,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'POSTPROCESSING_HOOKS': [], 
     'ENUM_NAME_OVERRIDES': {},
+    'DEFAULT_FILTER_BACKENDS': [],  # Disable filter backends in schema generation
 }
 # CORS
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')

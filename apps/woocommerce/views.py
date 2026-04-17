@@ -101,28 +101,24 @@ class WooProductMapViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para mappings de productos"""
     queryset = WooProductMap.objects.all()
     serializer_class = WooProductMapSerializer
-    filterset_fields = ['woo_store', 'woo_product_id']
 
 
 class WooCategoryMapViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para mappings de categorías"""
     queryset = WooCategoryMap.objects.all()
     serializer_class = WooCategoryMapSerializer
-    filterset_fields = ['woo_store', 'woo_category_id']
 
 
 class WooCustomerMapViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para mappings de clientes"""
     queryset = WooCustomerMap.objects.all()
     serializer_class = WooCustomerMapSerializer
-    filterset_fields = ['woo_store', 'woo_customer_id']
 
 
 class WooOrderMapViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para mappings de órdenes"""
     queryset = WooOrderMap.objects.all()
     serializer_class = WooOrderMapSerializer
-    filterset_fields = ['woo_store', 'woo_order_id']
     
     @action(detail=False, methods=['post'], url_path='import-order')
     def import_order(self, request):
@@ -157,21 +153,18 @@ class WooCouponMapViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para mappings de cupones"""
     queryset = WooCouponMap.objects.all()
     serializer_class = WooCouponMapSerializer
-    filterset_fields = ['woo_store', 'woo_coupon_id']
 
 
 class WooTaxMappingViewSet(viewsets.ModelViewSet):
     """ViewSet para mappings de impuestos"""
     queryset = WooTaxMapping.objects.all()
     serializer_class = WooTaxMappingSerializer
-    filterset_fields = ['woo_store', 'woo_tax_class']
 
 
 class WooWebhookLogViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para logs de webhooks"""
     queryset = WooWebhookLog.objects.all()
     serializer_class = WooWebhookLogSerializer
-    filterset_fields = ['store', 'topic', 'success']
     permission_classes = [IsAuthenticated]
 
 

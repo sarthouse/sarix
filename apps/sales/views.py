@@ -2,7 +2,6 @@ from rest_framework import status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from django_filters.rest_framework import DjangoFilterBackend
 from .models import SaleOrder, SaleOrderStatus, SaleQuote, SaleQuoteStatus
 from .serializers import (
     SaleOrderSerializer,
@@ -21,8 +20,7 @@ class SaleOrderViewSet(ModelViewSet):
     queryset = SaleOrder.objects.select_related(
         'customer', 'warehouse', 'journal', 'created_by'
     ).prefetch_related('lines__product')
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'customer', 'warehouse']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['number', 'customer__name']
     ordering_fields = ['date', 'created_at', 'number']
 
@@ -128,8 +126,7 @@ class SaleQuoteViewSet(ModelViewSet):
     queryset = SaleQuote.objects.select_related(
         'customer', 'warehouse', 'sale_order', 'created_by'
     ).prefetch_related('lines__product')
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'customer', 'warehouse']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['number', 'customer__name']
     ordering_fields = ['date', 'created_at', 'number']
 

@@ -2,7 +2,6 @@ from rest_framework import status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from django_filters.rest_framework import DjangoFilterBackend
 from .models import (
     Category, Attribute, AttributeValue, UnitOfMeasure,
     ProductTemplate, Product, Lot, StockQuant,
@@ -27,21 +26,20 @@ MOVEMENT_STATUS = [
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
 
 class AttributeViewSet(ModelViewSet):
     queryset = Attribute.objects.all()
     serializer_class = AttributeSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
 
 class ProductTemplateViewSet(ModelViewSet):
     queryset = ProductTemplate.objects.all()
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'product_type', 'is_active']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['sku', 'name']
     ordering_fields = ['sku', 'name']
     
@@ -57,40 +55,39 @@ class ProductTemplateViewSet(ModelViewSet):
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.select_related('template').all()
     serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['template', 'is_active']
+    filter_backends = [filters.SearchFilter]
     search_fields = ['sku', 'name']
 
 
 class LotViewSet(ModelViewSet):
     queryset = Lot.objects.select_related('template', 'warehouse').all()
     serializer_class = LotSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['template', 'warehouse']
+    filter_backends = [filters.SearchFilter]
     search_fields = ['number']
 
 
 class StockQuantViewSet(ModelViewSet):
-    queryset = StockQuant.objects.select_related('product', 'product__template', 'warehouse').all()
     serializer_class = StockQuantSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['product', 'lot', 'warehouse']
+    filter_backends = [filters.SearchFilter]
     search_fields = ['product__sku', 'lot__number']
+    
+    def get_queryset(self):
+        return StockQuant.objects.select_related(
+            'product', 'product__template', 'warehouse', 'lot'
+        )
 
 
 class WarehouseViewSet(ModelViewSet):
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['is_active']
+    filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'code']
 
 
 class StockViewSet(ModelViewSet):
     queryset = Stock.objects.select_related('template', 'product', 'warehouse').all()
     serializer_class = StockSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['template', 'product', 'warehouse']
+    filter_backends = [filters.SearchFilter]
     search_fields = ['template__sku', 'product__sku', 'warehouse__code']
 
 
@@ -98,8 +95,7 @@ class StockMovementViewSet(ModelViewSet):
     queryset = StockMovement.objects.select_related(
         'product', 'product__template', 'template', 'lot', 'warehouse_src', 'warehouse_dst', 'partner', 'journal'
     ).all()
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['movement_type', 'status', 'product', 'template', 'warehouse_src', 'warehouse_dst']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['reference', 'product__sku', 'template__sku']
     ordering_fields = ['created_at', 'qty']
     
@@ -151,8 +147,7 @@ class StockMovementViewSet(ModelViewSet):
 class StockAlertViewSet(ModelViewSet):
     queryset = StockAlert.objects.select_related('quant', 'stock').all()
     serializer_class = StockAlertSerializer
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['alert_type', 'resolved']
+    filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at']
     
     @action(detail=True, methods=['post'])

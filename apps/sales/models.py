@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from apps.core.validators import SaleOrderValidator, SaleQuoteValidator
 
 
 class SaleOrderStatus(models.TextChoices):
@@ -57,6 +58,10 @@ class SaleOrder(models.Model):
 
     def __str__(self):
         return f"{self.number} - {self.customer.name}"
+    
+    def clean(self):
+        """Valida usando validador centralizado"""
+        SaleOrderValidator.validate(self)
 
     def save(self, *args, **kwargs):
         if not self.number:
@@ -214,6 +219,10 @@ class SaleQuote(models.Model):
 
     def __str__(self):
         return f"{self.number} - {self.customer.name}"
+    
+    def clean(self):
+        """Valida usando validador centralizado"""
+        SaleQuoteValidator.validate(self)
 
     def save(self, *args, **kwargs):
         if not self.number:

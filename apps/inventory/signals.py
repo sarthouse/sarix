@@ -1,13 +1,13 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from .models import StockMovement, Stock, Product
-from .services import StockAlertService
+from .models import StockMovement, Stock, Product, StockQuant, StockCache
+from .services import StockAlertService, StockCacheManager
 
 
 @receiver(post_save, sender=StockMovement)
 def on_movement_posted(sender, instance, **kwargs):
-    """Cuando se publica un movimiento, checkar alertas."""
+    """Cuando se publica un movimiento, checkar alertas + invalida caché"""
     if instance.status == 'posted':
         product = instance.product
         if product.product_type != 'servicio':
@@ -16,13 +16,35 @@ def on_movement_posted(sender, instance, **kwargs):
                 StockAlertService.check(stock)
             except Stock.DoesNotExist:
                 pass
+        
+        # Invalida caché de stock
+        if instance.warehouse_src_id:
+            StockCacheManager.invalidate(product.id, instance.warehouse_src_id)
+        if instance.warehouse_dst_id:
+            StockCacheManager.invalidate(product.id, instance.warehouse_dst_id)
 
 
 @receiver(post_save, sender=Stock)
 def on_stock_changed(sender, instance, **kwargs):
-    """Cuando cambia stock, checkar alertas."""
+    """Cuando cambia stock, checkar alertas + invalida caché"""
     if instance.product.product_type != 'servicio':
         StockAlertService.check(instance)
+    
+    # Invalida caché
+    StockCacheManager.invalidate(instance.product.id, instance.warehouse.id)
+
+
+@receiver(post_save, sender=StockQuant)
+def on_stock_quant_changed(sender, instance, **kwargs):
+    """Cuando cambia StockQuant, invalida caché"""
+    if instance.product and instance.warehouse:
+        StockCacheManager.invalidate(instance.product.id, instance.warehouse.id)
+
+
+@receiver(post_save, sender=StockCache)
+def on_stock_cache_updated(sender, instance, **kwargs):
+    """Cuando StockCache se actualiza, invalida caché en memoria"""
+    StockCacheManager.invalidate(instance.product.id, instance.warehouse.id)
 
 
 @receiver(post_save, sender=Product)

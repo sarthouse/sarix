@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from apps.core.validators import StockMovementValidator
 
 
 class ProductType(models.TextChoices):
@@ -804,3 +805,30 @@ class StockAlert(models.Model):
         if self.quant:
             return f"{self.get_alert_type_display()} - {self.quant.product.sku}"
         return f"{self.get_alert_type_display()} - {self.stock.template.sku}"
+
+
+class StockCache(models.Model):
+    """Cache inteligente para saldos de stock (inspirado en Odoo)"""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_caches')
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='stock_caches')
+    
+    qty_available = models.DecimalField(max_digits=14, decimal_places=4, default=0)
+    qty_reserved = models.DecimalField(max_digits=14, decimal_places=4, default=0)
+    
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Cache de Stock'
+        verbose_name_plural = 'Caches de Stock'
+        unique_together = ['product', 'warehouse']
+        indexes = [
+            models.Index(fields=['product_id', 'warehouse_id']),
+        ]
+    
+    def __str__(self):
+        return f"{self.product.sku} - {self.warehouse.code}: {self.qty_available} (cached)"
+    
+    @property
+    def qty_free(self):
+        """Cantidad disponible (no reservada)"""
+        return self.qty_available - self.qty_reserved

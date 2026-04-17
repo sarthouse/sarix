@@ -9,8 +9,7 @@ from .serializers import DocumentTypeSerializer, JournalSerializer, JournalListS
 
 class DocumentTypeViewSet(ModelViewSet):
     queryset = DocumentType.objects.all()
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['document_class', 'iva_type', 'is_active']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['code', 'name']
     ordering_fields = ['code']
 
@@ -19,11 +18,17 @@ class DocumentTypeViewSet(ModelViewSet):
 
 
 class JournalViewSet(ModelViewSet):
-    queryset = Journal.objects.prefetch_related("lines__account")
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ["status", "period", "partner"]
+    queryset = Journal.objects.all()
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["number", "description", "reference"]
     ordering_fields = ["date", "number"]
+    
+    def get_queryset(self):
+        return Journal.objects.select_related(
+            'period', 'partner', 'created_by'
+        ).prefetch_related(
+            'lines__account'
+        )
 
     def get_serializer_class(self):
         return JournalListSerializer if self.action == "list" else JournalSerializer

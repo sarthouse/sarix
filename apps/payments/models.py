@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from apps.core.validators import PaymentValidator, CheckValidator
 
 
 class PaymentMethodType(models.TextChoices):
@@ -123,6 +124,10 @@ class Check(models.Model):
     
     def __str__(self):
         return f"Cheque {self.number} - {self.partner.name} - {self.amount}"
+    
+    def clean(self):
+        """Valida usando validador centralizado"""
+        CheckValidator.validate(self)
 
 
 class CheckOperationType(models.TextChoices):

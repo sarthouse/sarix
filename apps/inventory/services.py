@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.core.exceptions import ValidationError
 from django.conf import settings as django_settings
+from django.core.cache import cache
 
 from apps.accounting.models import Journal, JournalLine
 from apps.company.models import Company, CompanyConfig
@@ -10,8 +11,79 @@ from apps.accounts.models import Account
 
 from .models import (
     StockMovement, Stock, StockAlert, StockQuant, Lot,
-    ProductTemplate, Product, ProductType, Warehouse
+    ProductTemplate, Product, ProductType, Warehouse, StockCache
 )
+
+
+class StockCacheManager:
+    """Manager inteligente para caché de stock (inspirado en Odoo)"""
+    
+    CACHE_TIMEOUT = 900  # 15 minutos
+    CACHE_PREFIX = "sarix:stock"
+    
+    @classmethod
+    def get_cache_key(cls, product_id, warehouse_id):
+        """Genera key para Redis/cache"""
+        return f"{cls.CACHE_PREFIX}:{product_id}:{warehouse_id}"
+    
+    @classmethod
+    def get_or_fetch(cls, product_id, warehouse_id):
+        """Obtiene cache de stock o lo computa si no existe"""
+        cache_key = cls.get_cache_key(product_id, warehouse_id)
+        
+        # Intenta cache en memoria
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+        
+        # Si no existe, obtener del modelo StockCache
+        try:
+            cache_obj = StockCache.objects.get(
+                product_id=product_id,
+                warehouse_id=warehouse_id
+            )
+            result = {
+                'qty_available': float(cache_obj.qty_available),
+                'qty_reserved': float(cache_obj.qty_reserved),
+                'qty_free': float(cache_obj.qty_free),
+            }
+        except StockCache.DoesNotExist:
+            result = {
+                'qty_available': 0.0,
+                'qty_reserved': 0.0,
+                'qty_free': 0.0,
+            }
+        
+        # Guardar en cache en memoria
+        cache.set(cache_key, result, cls.CACHE_TIMEOUT)
+        return result
+    
+    @classmethod
+    def invalidate(cls, product_id, warehouse_id):
+        """Invalida caché para producto + almacén"""
+        cache_key = cls.get_cache_key(product_id, warehouse_id)
+        cache.delete(cache_key)
+    
+    @classmethod
+    def invalidate_product(cls, product_id):
+        """Invalida caché para todos almacenes del producto"""
+        warehouses = Warehouse.objects.values_list('id', flat=True)
+        for warehouse_id in warehouses:
+            cls.invalidate(product_id, warehouse_id)
+    
+    @classmethod
+    def update_cache(cls, product_id, warehouse_id, qty_available, qty_reserved):
+        """Actualiza StockCache en BD + invalida caché en memoria"""
+        cache_obj, created = StockCache.objects.get_or_create(
+            product_id=product_id,
+            warehouse_id=warehouse_id,
+            defaults={'qty_available': 0, 'qty_reserved': 0}
+        )
+        cache_obj.qty_available = qty_available
+        cache_obj.qty_reserved = qty_reserved
+        cache_obj.save()
+        
+        cls.invalidate(product_id, warehouse_id)
 
 
 class CompanyConfigService:

@@ -2,7 +2,6 @@ from rest_framework import status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from django_filters.rest_framework import DjangoFilterBackend
 from .models import PurchaseOrder, PurchaseOrderStatus, PurchaseOrderPartnerLine
 from .serializers import (
     PurchaseOrderSerializer,
@@ -18,8 +17,7 @@ class PurchaseOrderViewSet(ModelViewSet):
     queryset = PurchaseOrder.objects.select_related(
         'partner', 'warehouse', 'currency', 'created_by'
     ).prefetch_related('lines', 'lines__product', 'lines__template', 'lines__taxes', 'picking_ids')
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['state', 'partner', 'warehouse', 'currency']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'partner__name', 'partner_ref']
     ordering_fields = ['date_order', 'created_at', 'name']
 
@@ -121,8 +119,7 @@ class PurchaseOrderPartnerLineViewSet(ModelViewSet):
     queryset = PurchaseOrderPartnerLine.objects.select_related(
         'partner', 'product_template', 'currency'
     )
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['partner', 'product_template']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['partner__name', 'product_template__sku', 'product_code']
     ordering_fields = ['partner__name', 'product_template__sku']
 

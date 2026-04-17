@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
@@ -14,6 +14,16 @@ from apps.payments.services import PaymentService
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['reference', 'partner__name']
+    ordering_fields = ['date', 'created_at']
+    
+    def get_queryset(self):
+        return Payment.objects.select_related(
+            'partner', 'journal', 'currency', 'period', 'created_by'
+        ).prefetch_related(
+            'operations__check'
+        )
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -67,6 +77,16 @@ class PaymentViewSet(viewsets.ModelViewSet):
 class CheckViewSet(viewsets.ModelViewSet):
     queryset = Check.objects.all()
     serializer_class = CheckSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['number', 'partner__name']
+    ordering_fields = ['issue_date', 'created_at']
+    
+    def get_queryset(self):
+        return Check.objects.select_related(
+            'partner', 'journal', 'currency', 'created_by'
+        ).prefetch_related(
+            'operations'
+        )
     
     def get_serializer_class(self):
         if self.action == 'create':

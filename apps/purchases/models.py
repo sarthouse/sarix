@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from apps.core.validators import PurchaseOrderValidator
 
 
 class PurchaseOrderStatus(models.TextChoices):
@@ -95,6 +96,10 @@ class PurchaseOrder(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.partner.name}"
+    
+    def clean(self):
+        """Valida usando validador centralizado"""
+        PurchaseOrderValidator.validate(self)
 
     def save(self, *args, **kwargs):
         if not self.name:

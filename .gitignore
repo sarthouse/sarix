@@ -9,6 +9,7 @@ __pycache__/
 .env
 *.log
 utils/
+docs/
 staticfiles/
 media/
 frontend/node_modules/
